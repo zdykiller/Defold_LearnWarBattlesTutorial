@@ -1,0 +1,29 @@
+{
+  :bundle {
+    :html5 {
+      :architectures #{
+        "wasm-web"
+      }
+      :build_report false
+      :contentless false
+      :liveupdate false
+      :texture_compression "enabled"
+      :variant "debug"
+      :with_symbols true
+    }
+    :last-bundle-command :project.bundle-html5
+    :output-directory "/Users/admin/WorkProjects/DefoldProjects/War battles tutorial/export_package"
+  }
+  :workflow {
+    :recent-files [
+      [
+        "/main/map.tilemap"
+        :scene
+      ]
+      [
+        "/main/main.collection"
+        :scene
+      ]
+    ]
+  }
+}

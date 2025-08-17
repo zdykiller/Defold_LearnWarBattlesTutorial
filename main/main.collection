@@ -1,0 +1,83 @@
+name: "main"
+instances {
+  id: "tank"
+  prototype: "/main/tank.go"
+  position {
+    x: 390.0
+    y: 377.0
+    z: 1.0
+  }
+}
+instances {
+  id: "tank1"
+  prototype: "/main/tank.go"
+  position {
+    x: 617.0
+    y: 460.0
+    z: 1.0
+  }
+}
+instances {
+  id: "tank2"
+  prototype: "/main/tank.go"
+  position {
+    x: 358.0
+    y: 587.0
+    z: 1.0
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "map"
+  data: "components {\n"
+  "  id: \"map\"\n"
+  "  component: \"/main/map.tilemap\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "player"
+  data: "components {\n"
+  "  id: \"player\"\n"
+  "  component: \"/main/player.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"sprite\"\n"
+  "  type: \"sprite\"\n"
+  "  data: \"default_animation: \\\"player-down\\\"\\n"
+  "material: \\\"/builtins/materials/sprite.material\\\"\\n"
+  "textures {\\n"
+  "  sampler: \\\"texture_sampler\\\"\\n"
+  "  texture: \\\"/main/sprites.atlas\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"rocketfactory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/rocket.go\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+  position {
+    x: 500.0
+    y: 500.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "gui"
+  data: "components {\n"
+  "  id: \"ui\"\n"
+  "  component: \"/main/ui.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "debugger"
+  data: "components {\n"
+  "  id: \"debugger\"\n"
+  "  component: \"/debugger/debugger.script\"\n"
+  "}\n"
+  ""
+}
