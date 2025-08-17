@@ -58,9 +58,13 @@ var CUSTOM_PARAMETERS = {
         if (is_iOS) {
             window.scrollTo(0, 0);
         }
+
+
     
         var app_container = document.getElementById('app-container');
+        // var app_container = new Proxy({}, handler);
         var game_canvas = document.getElementById('canvas');
+        // var game_canvas = wx.createCanvas();
         var innerWidth = window.innerWidth;
         var innerHeight = window.innerHeight - buttonHeight;
         if (prevInnerWidth == innerWidth && prevInnerHeight == innerHeight)
@@ -178,6 +182,16 @@ var FileLoader = {
     // onload(response)
     // onretry(loadedSize, currentAttempt)
     load: function(url, responseType, onprogress, onerror, onload, onretry) {
+        let wxfs = wx.getFileSystemManager();
+        let encode = responseType == "arraybuffer" ? undefined: "utf-8";
+        let res = wxfs.readFileSync(url + ".dat", encode);
+        if (responseType == "json" && typeof res === "string") {
+            onload(JSON.parse(res));
+        } else {
+            onload(res);
+        }
+        return;
+
         var request = FileLoader.request(url, "GET", responseType);
         request.onprogress = function(xhr, e, ls) {
             var delta = e.loaded - ls;
@@ -208,7 +222,7 @@ var FileLoader = {
 };
 
 
-var EngineLoader = {
+export var EngineLoader = {
     wasm_size: 2831423,
     wasmjs_size: 340433,
     asmjs_size: 4000000,
@@ -222,6 +236,16 @@ var EngineLoader = {
 
     // load and instantiate .wasm file using XMLHttpRequest
     loadAndInstantiateWasmAsync: function(src, imports, successCallback) {
+        let onload = function() {
+            var wasmInstantiate = WXWebAssembly.instantiate(src, imports).then(function(output) {
+                successCallback(output.instance);
+            }).catch(function(e) {
+                console.log('wasm instantiation failed! ' + e);
+                throw e;
+            });
+        }   
+        onload();
+        return;
         FileLoader.load(src, "arraybuffer",
             function(delta) { 
                 ProgressUpdater.updateCurrent(delta);
@@ -297,6 +321,13 @@ var EngineLoader = {
 
     // load and start engine script (asm.js or wasm.js)
     loadAndRunScriptAsync: function(src) {
+        if(typeof CUSTOM_PARAMETERS["loadAndRunScriptAsync"] == "function"){
+            CUSTOM_PARAMETERS["loadAndRunScriptAsync"](src)
+        }
+        // setTimeout(()=>{
+            // import("./" + src);
+        // }, 1000)
+        return;
         FileLoader.load(src, "text",
             function(delta) {
                 ProgressUpdater.updateCurrent(delta);
@@ -315,9 +346,10 @@ var EngineLoader = {
     // left as entrypoint for backward capability
     // start loading archive_files.json
     // after receiving it - start loading engine and data concurrently
-    load: function(appCanvasId, exeName) {
+    load: function(appCanvasId, exeName, customParams) {
         ProgressView.addProgress(Module.setupCanvas(appCanvasId));
         CUSTOM_PARAMETERS['exe_name'] = exeName;
+        Object.assign(CUSTOM_PARAMETERS, customParams);  
 
         FileLoader.options.retryCount = CUSTOM_PARAMETERS["retry_count"];
         FileLoader.options.retryInterval = CUSTOM_PARAMETERS["retry_time"] * 1000;
@@ -341,7 +373,6 @@ var EngineLoader = {
         }        
     }
 }
-
 
 /* ********************************************************************* */
 /* Load and combine game archive data that is split into archives        */
@@ -385,7 +416,7 @@ var GameArchiveLoader = {
         list.push(callback);
     },
     notifyListeners: function(list, data) {
-        for (i=0; i<list.length; ++i) {
+        for (let i=0; i<list.length; ++i) {
             list[i](data);
         }
     },
@@ -435,7 +466,7 @@ var GameArchiveLoader = {
         this._files = json.content;
 
         var isWASMSupported = Module['isWASMSupported'];
-        if (isWASMSupported) {
+        if (true) {
             EngineLoader.loadWasmAsync(exeName);
             totalSize += EngineLoader.wasm_size + EngineLoader.wasmjs_size;
         } else {
@@ -493,8 +524,8 @@ var GameArchiveLoader = {
             function (response) {
                 piece.data = new Uint8Array(response);
                 piece.dataLength = piece.data.length;
-                total = piece.dataLength;
-                downloaded = piece.dataLength;
+                let total = piece.dataLength;
+                let downloaded = piece.dataLength;
                 GameArchiveLoader.onPieceLoaded(file, piece);
                 piece.data = undefined;
             },
@@ -550,7 +581,7 @@ var GameArchiveLoader = {
         // verify the pieces
         if (file.pieces.length > 1) {
             var pieces = file.pieces;
-            for (i=0; i<pieces.length; ++i) {
+            for (let i=0; i<pieces.length; ++i) {
                 var item = pieces[i];
                 // Bounds check
                 var start = item.offset;
@@ -598,9 +629,9 @@ var ProgressView = {
 
     addProgress : function (canvas) {
         /* Insert default progress bar below canvas */
-        canvas.insertAdjacentHTML('afterend', '<div id="' + ProgressView.progress_id + '" class="canvas-app-progress"><div id="' + ProgressView.bar_id + '" class="canvas-app-progress-bar" style="transform: scaleX(0.0);"></div></div>');
-        ProgressView.bar = document.getElementById(ProgressView.bar_id);
-        ProgressView.progress = document.getElementById(ProgressView.progress_id);
+        // canvas.insertAdjacentHTML('afterend', '<div id="' + ProgressView.progress_id + '" class="canvas-app-progress"><div id="' + ProgressView.bar_id + '" class="canvas-app-progress-bar" style="transform: scaleX(0.0);"></div></div>');
+        // ProgressView.bar = document.getElementById(ProgressView.bar_id);
+        // ProgressView.progress = document.getElementById(ProgressView.progress_id);
     },
 
     updateProgress: function(percentage) {
@@ -610,6 +641,7 @@ var ProgressView = {
     },
 
     removeProgress: function () {
+        return;
         if (ProgressView.progress.parentElement !== null) {
             ProgressView.progress.parentElement.removeChild(ProgressView.progress);
 
@@ -632,7 +664,7 @@ var ProgressUpdater = {
     },
 
     notifyListeners: function(percentage) {
-        for (i=0; i<this.listeners.length; ++i) {
+        for (let i=0; i<this.listeners.length; ++i) {
             this.listeners[i](percentage);
         }
     },
@@ -778,7 +810,8 @@ var Module = {
         try {
             var canvas = document.createElement("canvas");
             var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-            if (gl && gl instanceof WebGLRenderingContext) {
+            // if (gl && gl instanceof WebGLRenderingContext) {
+            if (gl) {
                 webgl_support = true;
             }
         } catch (error) {
@@ -1005,6 +1038,8 @@ var Module = {
     },
 };
 
+window.Module = Module;
+
 // common engine setup
 Module['persistentStorage'] = (typeof window !== 'undefined') && !!(window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB);
 
@@ -1035,3 +1070,13 @@ window.onerror = function(err, url, line, column, errObj) {
         if (text) Module.printErr('[post-exception status] ' + text);
     };
 };
+
+// Module["instantiateWasm"] = function(imports, successCallback) {
+//     if (EngineLoader.stream_wasm && (typeof WebAssembly.instantiateStreaming === "function")) {
+//         EngineLoader.streamAndInstantiateWasmAsync(exeName + ".wasm", imports, successCallback);
+//     }
+//     else {
+//         EngineLoader.loadAndInstantiateWasmAsync(exeName + ".wasm", imports, successCallback);
+//     }
+//     return {}; // Compiling asynchronously, no exports.
+// };

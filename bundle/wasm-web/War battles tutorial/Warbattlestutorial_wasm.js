@@ -1,3 +1,7 @@
+export function realLoad()
+{
+
+
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : String(i); }
@@ -10,7 +14,7 @@ function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symb
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-var Module = typeof Module != "undefined" ? Module : {};
+var Module = typeof window.Module != "undefined" ? window.Module : {};
 if (typeof Object.assign == "undefined") {
   Object.assign = function (target, source) {
     for (var i = 1; i < arguments.length; i++) {
@@ -134,9 +138,9 @@ if (Module["thisProgram"]) thisProgram = Module["thisProgram"];
 if (Module["quit"]) quit_ = Module["quit"];
 var wasmBinary;
 if (Module["wasmBinary"]) wasmBinary = Module["wasmBinary"];
-if ((typeof WebAssembly === "undefined" ? "undefined" : _typeof(WebAssembly)) != "object") {
-  abort("no native wasm support detected");
-}
+// if ((typeof WebAssembly === "undefined" ? "undefined" : _typeof(WebAssembly)) != "object") {
+//   abort("no native wasm support detected");
+// }
 var wasmMemory;
 var ABORT = false;
 var EXITSTATUS;
@@ -161,7 +165,7 @@ var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 33554432;
 if (Module["wasmMemory"]) {
   wasmMemory = Module["wasmMemory"];
 } else {
-  wasmMemory = new WebAssembly.Memory({
+  wasmMemory = new WXWebAssembly.Memory({
     "initial": INITIAL_MEMORY / 65536,
     "maximum": 2147483648 / 65536
   });
@@ -283,7 +287,7 @@ function abort(what) {
   ABORT = true;
   EXITSTATUS = 1;
   what += ". Build with -sASSERTIONS for more info.";
-  var e = new WebAssembly.RuntimeError(what);
+  var e = new WXWebAssembly.RuntimeError(what);
   throw e;
 }
 var dataURIPrefix = "data:application/octet-stream;base64,";
@@ -334,14 +338,14 @@ function getBinaryPromise(binaryFile) {
 }
 function instantiateArrayBuffer(binaryFile, imports, receiver) {
   return getBinaryPromise(binaryFile).then(function (binary) {
-    return WebAssembly.instantiate(binary, imports);
+    return WXWebAssembly.instantiate(binary, imports);
   }).then(receiver, function (reason) {
     err("failed to asynchronously prepare wasm: ".concat(reason));
     abort(reason);
   });
 }
 function instantiateAsync(binary, binaryFile, imports, callback) {
-  if (!binary && typeof WebAssembly.instantiateStreaming == "function" && !isDataURI(binaryFile) && !isFileURI(binaryFile) && !ENVIRONMENT_IS_NODE && typeof fetch == "function") {
+  if (!binary && typeof WXWebAssembly.instantiateStreaming == "function" && !isDataURI(binaryFile) && !isFileURI(binaryFile) && !ENVIRONMENT_IS_NODE && typeof fetch == "function") {
     return fetch(binaryFile, {
       credentials: "same-origin"
     }).then(function (response) {
@@ -3084,6 +3088,7 @@ var FS = {
     return node;
   }
 };
+window.FS = FS;
 var SYSCALLS = {
   DEFAULT_POLLMASK: 5,
   calculateAt: function calculateAt(dirfd, path, allowEmpty) {
@@ -4660,6 +4665,7 @@ var DMSYS = {
     }
   }
 };
+window.DMSYS = DMSYS;
 function _dmSysGetApplicationPath() {
   var path = location.href.substring(0, location.href.lastIndexOf("/"));
   var buffer = stringToNewUTF8(path);
@@ -5451,6 +5457,7 @@ var Browser = {
     Browser.updateResizeListeners();
   },
   updateCanvasDimensions: function updateCanvasDimensions(canvas, wNative, hNative) {
+      return;
     if (wNative && hNative) {
       canvas.widthNative = wNative;
       canvas.heightNative = hNative;
@@ -5566,7 +5573,8 @@ var GL = {
     if (!canvas.getContextSafariWebGL2Fixed) {
       var fixedGetContext = function fixedGetContext(ver, attrs) {
         var gl = canvas.getContextSafariWebGL2Fixed(ver, attrs);
-        return ver == "webgl" == gl instanceof WebGLRenderingContext ? gl : null;
+        // return ver == "webgl" == gl instanceof WebGLRenderingContext ? gl : null;
+        return ver == "webgl" == true ? gl : null;
       };
       canvas.getContextSafariWebGL2Fixed = canvas.getContext;
       canvas.getContext = fixedGetContext;
@@ -9379,7 +9387,7 @@ FS.staticInit();
 Module["requestFullscreen"] = Browser.requestFullscreen;
 Module["requestAnimationFrame"] = Browser.requestAnimationFrame;
 Module["setCanvasSize"] = Browser.setCanvasSize;
-Module["pauseMainLoop"] = Browser.mainLoop.pause;
+Module["pauseMainLoop"] = Browser.mainLoop .pause;
 Module["resumeMainLoop"] = Browser.mainLoop.resume;
 Module["getUserMedia"] = Browser.getUserMedia;
 Module["createContext"] = Browser.createContext;
@@ -10096,3 +10104,5 @@ if (Module["preInit"]) {
 var shouldRunNow = true;
 if (Module["noInitialRun"]) shouldRunNow = false;
 run();
+
+}
